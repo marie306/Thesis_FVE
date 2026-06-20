@@ -41,7 +41,7 @@
    všech ostatních kritérií
 2. **Reliéf** – shodná expozice a podobný sklon; důležitější než
    vzdálenost (přímý vliv na vodní bilanci půdy)
-3. **BPEJ** – shoda na úrovni HPJ (první dvě číslice BPEJ)
+3. **BPEJ** – shoda na úrovni HPJ (první dvě číslice BPEJ) přípandě shoda v půdním typu-již načteno jako vrstva v QGIS - uvidím, co bude sedět lépe (co mi budvyřazovat méně ploch) a podle toho se rozhodnu 
 4. **Vzdálenost** – preferovaná do 2 km, akceptovatelné do 5 km
    při shodném klimatickém regionu
 5. **Les a vodní plocha** – kontrolní plocha nesmí obsahovat les ani
