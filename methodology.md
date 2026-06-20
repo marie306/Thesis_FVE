@@ -17,11 +17,18 @@
 
 ---
 
-## Vymezení polygonů
+## Vymezení analyzovaných ploch
 
-### FVE polygon
-- Vnitřní buffer: 50 m (Sentinel-2), 60 m (Landsat)
-- Odůvodnění: eliminace smíšených pixelů na okraji FVE -ještě zkusit reálný rozdíl na Vepřeku
+### Technický postup
+- software (QGIS) , CRS (EPSG:32633), zdroj podkladové mapy (ESRI World Imagery -QuicMapServices)
+
+### Definice hranic
+- FVE polygon (full) X FVE polygon (buffer −30 m) ?
+- kontrolní plocha
+
+### Sensitivity analysis hranice ROI
+- postup testování na Vepřku
+- výsledek a zdůvodnění finální volby
 
 ### FVE - kritéria výběru 
 1. **Rozloha** - min plocha 20 ha
@@ -58,7 +65,7 @@
 |---|---|---|
 | 2017 | normální referenční rok | Sentinel-2, LST |
 | 2018 | extrémní sucho (521 mm) | Sentinel-2, LST |
-| 2019 | referenční rok po extrému | Sentinel-2, LST |
+| 2019 | post-drought | Sentinel-2, LST |
 | 2020 | mokrý referenční rok | Sentinel-2,LST |
 | 2026 | aktuální data (suché jaro, upřesnění na podzim) | Sentinel-2, LST |
 
@@ -104,11 +111,16 @@ Analyzovaná sezóna: březen–říjen
 ---
 
 ## Otevřené otázky
-- [ ] Velikost bufferu ověřit na Vepřku
+- [ ] Velikost bufferu ověřit na Vepřku(sensitivity analysis ROI)
 - [ ] SCL cloudmask otestovat na Vepřku
 - [ ] Finalizovat kritéria BPEJ párování
 - [ ] Počet lokalit: cíl 8+
 - [ ] Časová okna č. B: 1 průměr ze všech měsíců nebo každý měsíc zvlášť? zkusit na Vepřeku 
+
+---
+
+## Poznámky 
+- 2019 - srážky634 mm,92% normálu X může přetrvávat deplece z 2018 (uveď v diskuzi)
 
 ---
 
