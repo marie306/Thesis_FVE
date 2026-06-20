@@ -90,3 +90,16 @@ Analyzovaná sezóna:
 - [ ] SCL cloudmask otestovat na Vepřku
 - [ ] Finalizovat kritéria BPEJ párování
 - [ ] Počet lokalit: cíl 8+
+
+---
+
+## Datové zdroje
+
+| Zdroj | Data | URL |
+|---|---|---|
+| Google Earth Engine | Sentinel-2 L2A, Landsat 8/9 | code.earthengine.google.com |
+| VÚMOP | BPEJ vrstva | vumop.cz |
+| ERU | Databáze FVE v ČR | eru.cz |
+| ČHMÚ | Srážkové normály a roční úhrny | chmi.cz |
+| envidata.cz | Roční úhrny srážek po letech | envidata.cz |
+| Copernicus Browser | Vizuální průzkum snímků | browser.dataspace.copernicus.eu |
