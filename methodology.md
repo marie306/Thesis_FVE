@@ -52,20 +52,38 @@
 
 ---
 
-## Časová okna
+## Časová okna - část A 
 
 | Rok | Charakter | Senzor |
 |---|---|---|
-| před 2010 | před instalací FVE | Landsat |
-| 2017 | normální referenční rok | Sentinel-2 |
-| 2018 | extrémní sucho (521 mm) | Sentinel-2 |
-| 2020/2024 | mokrý referenční rok | Sentinel-2 |
-| 2026 | aktuální data (suché jaro, upřesnění na podzim) | Sentinel-2 |
+| 2017 | normální referenční rok | Sentinel-2, LST |
+| 2018 | extrémní sucho (521 mm) | Sentinel-2, LST |
+| 2019 | referenční rok po extrému | Sentinel-2, LST |
+| 2020 | mokrý referenční rok | Sentinel-2,LST |
+| 2026 | aktuální data (suché jaro, upřesnění na podzim) | Sentinel-2, LST |
+
+*LST termální pásmo,všechna časová období 
+*2019: 634 mm (92 % normálu 1991–2020); mírně podnormální, 
+akceptovatelné jako referenční rok po extrému sucha 2018*
 
 Analyzovaná sezóna: 
 - Hlavní okno: červen–září (všechna časová období)
-- Rozšířené okno: březen–říjen (2026, before-after časová řada)
 - Říjen: regenerační dynamika
+
+---
+
+## Časová okna – část B (before-after)
+
+Roky jsou definovány relativně k roku instalace FVE (I):
+
+| Fáze | Roky | Poznámka |
+|---|---|---|
+| Před instalací | I-3, I-2, I-1 | baseline – stav orné půdy |
+| Po instalaci | I+1, I+2, I+3, I+4, I+5 | disturbance fáze, stabilizace |
+| Referenční roky | 2017, 2018, 2020 | sdílené s částí A |
+| Aktuální | 2026 | |
+
+Analyzovaná sezóna: březen–říjen
 
 ---
 
@@ -90,6 +108,7 @@ Analyzovaná sezóna:
 - [ ] SCL cloudmask otestovat na Vepřku
 - [ ] Finalizovat kritéria BPEJ párování
 - [ ] Počet lokalit: cíl 8+
+- [ ] Časová okna č. B: 1 průměr ze všech měsíců nebo každý měsíc zvlášť? zkusit na Vepřeku 
 
 ---
 
