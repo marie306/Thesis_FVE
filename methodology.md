@@ -74,8 +74,7 @@
 akceptovatelné jako referenční rok po extrému sucha 2018*
 
 Analyzovaná sezóna: 
-- Hlavní okno: červen–září (všechna časová období)
-- Říjen: regenerační dynamika
+- duben-říjen
 
 ---
 
