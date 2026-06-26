@@ -113,7 +113,7 @@ Analyzovaná sezóna: březen–říjen
 - [ ] Velikost bufferu ověřit na Vepřku(sensitivity analysis ROI)
 - [ ] SCL cloudmask otestovat na Vepřku
 - [ ] Finalizovat kritéria BPEJ párování
-- [ ] Počet lokalit: cíl 8+
+- [ ] Počet lokalit: cíl 5+
 - [ ] Časová okna č. B: 1 průměr ze všech měsíců nebo každý měsíc zvlášť? zkusit na Vepřeku 
 
 ---
