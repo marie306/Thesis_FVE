@@ -74,7 +74,7 @@
 akceptovatelné jako referenční rok po extrému sucha 2018*
 
 Analyzovaná sezóna: 
-- duben-říjen
+- březen-říjen(vbřeznu můžebýt NDVI nízké kvůli časné fenologické fázi pěstovaných rostlin - diskutovat a případně odůvodnit, případně dodatečně z hodnocení vyloučit) 
 
 ---
 
