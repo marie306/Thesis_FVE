@@ -23,11 +23,11 @@
 - software (QGIS) , CRS (EPSG:32633), zdroj podkladové mapy (ESRI World Imagery -QuicMapServices)
 
 ### Definice hranic
-- FVE polygon (full) X FVE polygon (buffer −30 m) ?
+- FVE polygon (full) X FVE polygon (buffer −30 m) ? (otestujina vzorovém příkladu Vepřek a pakse rozhodnu)
 - kontrolní plocha
 
 ### Sensitivity analysis hranice ROI
-- postup testování na Vepřku
+- postup testování na Vepřeku
 - výsledek a zdůvodnění finální volby
 
 ### FVE - kritéria výběru 
@@ -37,14 +37,15 @@
 
 ### Kontrolní plocha – kritéria výběru (v pořadí priority)
 
-1. **Velikost** – minimum 80 % rozlohy FVE; výjimka možná při splnění
+1. **Využití půdy** - orná půda (LPIS)
+2. **Velikost** – minimum 80 % rozlohy FVE; výjimka možná při splnění
    všech ostatních kritérií
-2. **Reliéf** – shodná expozice a podobný sklon; důležitější než
+3. **Reliéf** – shodná expozice a podobný sklon; důležitější než
    vzdálenost (přímý vliv na vodní bilanci půdy)
-3. **BPEJ** – shoda na úrovni HPJ (první dvě číslice BPEJ) případně shoda v půdním typu-již načteno jako vrstva v QGIS - uvidím, co bude sedět lépe (co mi bude vyřazovat méně ploch) a podle toho se rozhodnu 
-4. **Vzdálenost** – preferovaná do 2 km, akceptovatelné do 5 km
+4. **BPEJ** – shoda na úrovni HPJ (první dvě číslice BPEJ)
+5. **Vzdálenost** – preferovaná do 2 km, akceptovatelné do 5 km
    při shodném klimatickém regionu
-5. **Les a vodní plocha** – kontrolní plocha nesmí obsahovat les ani
+6. **Les a vodní plocha** – kontrolní plocha nesmí obsahovat les ani
    vodní plochu; přítomnost těchto prvků v okolí do 100 m se
    dokumentuje jako potenciální limitace, není vyřazovacím kritériem
 
@@ -74,7 +75,7 @@
 akceptovatelné jako referenční rok po extrému sucha 2018*
 
 Analyzovaná sezóna: 
-- březen-říjen(vbřeznu můžebýt NDVI nízké kvůli časné fenologické fázi pěstovaných rostlin - diskutovat a případně odůvodnit, případně dodatečně z hodnocení vyloučit) 
+- březen-říjen(v březnu můžebýt NDVI nízké kvůli časné fenologické fázi pěstovaných rostlin - diskutovat a případně odůvodnit, případně dodatečně z hodnocení vyloučit a vysvětlit) 
 
 ---
 
@@ -110,8 +111,8 @@ Analyzovaná sezóna: březen–říjen
 ---
 
 ## Otevřené otázky
-- [ ] Velikost bufferu ověřit na Vepřku(sensitivity analysis ROI)
-- [ ] SCL cloudmask otestovat na Vepřku
+- [ ] Velikost bufferu ověřit na Vepřeku (sensitivity analysis ROI)
+- [ ] SCL cloudmask otestovat na Vepřeku
 - [ ] Finalizovat kritéria BPEJ párování
 - [ ] Počet lokalit: cíl 5+
 - [ ] Časová okna č. B: 1 průměr ze všech měsíců nebo každý měsíc zvlášť? zkusit na Vepřeku 
@@ -119,7 +120,7 @@ Analyzovaná sezóna: březen–říjen
 ---
 
 ## Poznámky 
-- 2019 - srážky634 mm,92% normálu X může přetrvávat deplece z 2018 (uveď v diskuzi)
+- 2019 - srážky 634 mm,92% normálu X může přetrvávat deplece z 2018 (uveď v diskuzi)
 
 ---
 
@@ -129,6 +130,7 @@ Analyzovaná sezóna: březen–říjen
 |---|---|---|
 | Google Earth Engine | Sentinel-2 L2A, Landsat 8/9 | code.earthengine.google.com |
 | VÚMOP | BPEJ vrstva | vumop.cz |
+| LPIS | Druh zemědělské půdy | eagri.cz |
 | ERU | Databáze FVE v ČR | eru.cz |
 | ČHMÚ | Srážkové normály a roční úhrny | chmi.cz |
 | envidata.cz | Roční úhrny srážek po letech | envidata.cz |
