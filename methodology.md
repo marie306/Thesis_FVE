@@ -124,6 +124,10 @@ Analyzovaná sezóna: březen–říjen
 
 ---
 
+## Poznámky k datům – Vepřek (pilotní lokalita)
+- Březen a říjen 2017: pouze 1 snímek – interpretovat s opatrností
+- Data exportována jako CSV do Google Drive/Diplomka/Data/Veprek/
+
 ## Datové zdroje
 
 | Zdroj | Data | URL |
