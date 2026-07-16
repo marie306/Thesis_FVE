@@ -23,12 +23,11 @@
 - software (QGIS) , CRS (EPSG:32633), zdroj podkladové mapy (ESRI World Imagery -QuicMapServices)
 
 ### Definice hranic
-- FVE polygon (full) X FVE polygon (buffer −30 m) ? (otestujina vzorovém příkladu Vepřek a pakse rozhodnu)
+- FVE polygon (full) X FVE polygon (buffer −30 m) ? (otestuji na vzorovém příkladu Vepřek a pak se rozhodnu)
 - kontrolní plocha
 
 ### Sensitivity analysis hranice ROI
-- postup testování na Vepřeku
-- výsledek a zdůvodnění finální volby
+- postup testování na Vepřeku - 16.7. test senzitivity - rozdíl mezi plnou plochou a plochou s bufferem je statisticky významný (NDVI_FVE_Veprek, párový t-test, p<0,001, Cohenovo d=1,08, Jamovi) -> pro finální analýzu zvolen interní buffer 30 m, který eliminuje okrajový efekt panelů a zachycuje vegetační signál uvnitř FVE.
 
 ### FVE - kritéria výběru 
 1. **Rozloha** - min plocha 20 ha
