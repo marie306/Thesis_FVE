@@ -27,7 +27,7 @@
 - kontrolní plocha
 
 ### Sensitivity analysis hranice ROI
-- postup testování na Vepřeku - 16.7. test senzitivity - rozdíl mezi plnou plochou a plochou s bufferem je statisticky významný (NDVI_FVE_Veprek, párový t-test, p<0,001, Cohenovo d=1,08, Jamovi) -> pro finální analýzu zvolen interní buffer 30 m, který eliminuje okrajový efekt panelů a zachycuje vegetační signál uvnitř FVE.
+- postup testování na Vepřeku - 16.7. test senzitivity - rozdíl mezi plnou plochou a plochou s bufferem (-30 m) je statisticky významný (NDVI_FVE_Veprek, párový t-test, p<0,001, Cohenovo d=1,08, Jamovi) -> pro finální analýzu zvolen interní buffer 30 m, který eliminuje okrajový efekt panelů a zachycuje vegetační signál uvnitř FVE.
 
 ### FVE - kritéria výběru 
 1. **Rozloha** - min plocha 20 ha
@@ -47,6 +47,18 @@
 6. **Les a vodní plocha** – kontrolní plocha nesmí obsahovat les ani
    vodní plochu; přítomnost těchto prvků v okolí do 100 m se
    dokumentuje jako potenciální limitace, není vyřazovacím kritériem
+
+## Seznam lokalit
+| Lokalita | Rozloha(ha) | Datum vzniku | 
+|Vepřek|72|2010|
+|Ševětín-Drahotěšice|34|2010|
+|Brno Tuřany|40|2010|
+|Stříbro|28|2009|
+|Sokolnice|28|2010|
+|Veselí nad Moravou|36|2010|
+|Břest|29|2010|
+
+---
 
 ## Indexy
 
@@ -112,8 +124,8 @@ Analyzovaná sezóna: březen–říjen
 ## Otevřené otázky
 - [ ] Velikost bufferu ověřit na Vepřeku (sensitivity analysis ROI)
 - [ ] SCL cloudmask otestovat na Vepřeku
-- [ ] Finalizovat kritéria BPEJ párování
-- [ ] Počet lokalit: cíl 5+
+- [ ] Finalizovat kritéria BPEJ párování - splněno
+- [ ] Počet lokalit: cíl 5+ - splněno (celkem 7 lokalit)
 - [ ] Časová okna č. B: 1 průměr ze všech měsíců nebo každý měsíc zvlášť? zkusit na Vepřeku 
 
 ---
