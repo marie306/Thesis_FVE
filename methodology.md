@@ -152,3 +152,4 @@ Analyzovaná sezóna: březen–říjen
 | ČHMÚ | Srážkové normály a roční úhrny | chmi.cz |
 | envidata.cz | Roční úhrny srážek po letech | envidata.cz |
 | Copernicus Browser | Vizuální průzkum snímků | browser.dataspace.copernicus.eu |
+| Mapy.cz | GPS lokalit | mapy.cz |
