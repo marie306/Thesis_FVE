@@ -51,7 +51,7 @@
 ## Seznam lokalit
 
 | Lokalita | Rozloha(ha) | Datum vzniku | 
-|---|---|---|---|---|
+|---|---|---|
 | Vepřek | 72 | 2010 |
 | Ševětín-Drahotěšice | 34 | 2010 |
 | Brno Tuřany | 40 | 2010 |
