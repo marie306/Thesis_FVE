@@ -49,14 +49,16 @@
    dokumentuje jako potenciální limitace, není vyřazovacím kritériem
 
 ## Seznam lokalit
+
 | Lokalita | Rozloha(ha) | Datum vzniku | 
-|Vepřek|72|2010|
-|Ševětín-Drahotěšice|34|2010|
-|Brno Tuřany|40|2010|
-|Stříbro|28|2009|
-|Sokolnice|28|2010|
-|Veselí nad Moravou|36|2010|
-|Břest|29|2010|
+|---|---|---|---|---|
+| Vepřek | 72 | 2010 |
+| Ševětín-Drahotěšice | 34 | 2010 |
+| Brno Tuřany | 40 | 2010 |
+| Stříbro | 28 | 2009 |
+| Sokolnice | 28 | 2010 |
+| Veselí nad Moravou | 36 | 2010 |
+| Břest | 29 | 2010 |
 
 ---
 
