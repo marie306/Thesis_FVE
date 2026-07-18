@@ -127,10 +127,16 @@ Analyzovaná sezóna: březen–říjen
 - [x] Velikost bufferu ověřit na Vepřeku (sensitivity analysis ROI) - velikost bufferu ověřena na Vepřeku (sensitivity analysis ROI)
   → Zvolen interní buffer −30 m na základě párového t-testu 
   (t = −6.14, p < 0.001, d = 1.08 vs. full polygon)
-- [ ] SCL cloudmask otestovat na Vepřeku
+- [x] SCL cloudmask
+  → Neimplementován; použit filtr CLOUDY_PIXEL_PERCENTAGE < 50 
+  s mediánovým kompozitem. Standardní přístup dostačující pro 
+  měsíční kompozity na plochách >20 ha.
 - [x] Finalizovat kritéria BPEJ párování - splněno
 - [x] Počet lokalit: cíl 5+ - splněno (celkem 7 lokalit)
-- [ ] Časová okna č. B: 1 průměr ze všech měsíců nebo každý měsíc zvlášť? zkusit na Vepřeku 
+- [x] Časová okna část B: měsíční rozlišení vs. sezónní průměr
+  → Zvoleno měsíční rozlišení (březen–říjen). Sezónní variabilita 
+  je výrazná a měsíční data umožňují sledovat fenologický vývoj 
+  před a po instalaci FVE. Sezónní průměr by tuto informaci ztratil.
 
 ---
 
