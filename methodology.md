@@ -124,10 +124,12 @@ Analyzovaná sezóna: březen–říjen
 ---
 
 ## Otevřené otázky
-- [ ] Velikost bufferu ověřit na Vepřeku (sensitivity analysis ROI)
+- [x] Velikost bufferu ověřit na Vepřeku (sensitivity analysis ROI) - velikost bufferu ověřena na Vepřeku (sensitivity analysis ROI)
+  → Zvolen interní buffer −30 m na základě párového t-testu 
+  (t = −6.14, p < 0.001, d = 1.08 vs. full polygon)
 - [ ] SCL cloudmask otestovat na Vepřeku
-- [ ] Finalizovat kritéria BPEJ párování - splněno
-- [ ] Počet lokalit: cíl 5+ - splněno (celkem 7 lokalit)
+- [x] Finalizovat kritéria BPEJ párování - splněno
+- [x] Počet lokalit: cíl 5+ - splněno (celkem 7 lokalit)
 - [ ] Časová okna č. B: 1 průměr ze všech měsíců nebo každý měsíc zvlášť? zkusit na Vepřeku 
 
 ---
