@@ -1,0 +1,185 @@
+// =============================================
+// Část A – FVE vs kontrola, všechny lokality
+// NDVI (Sentinel-2), NDMI (Sentinel-2), LST (Landsat 8/9)
+// =============================================
+
+// Načíst polygony z assetu
+var lokality = ee.FeatureCollection(
+  'projects/diplomka-fv-2018/assets/lokality_fve_all');
+
+// Seznam lokalit
+var siteIds = ['veprek', 'veseli', 'turany', 'stribro', 
+               'sokolnice', 'brest', 'sevetin'];
+
+// =============================================
+// Časová okna – část A, březen–říjen
+// =============================================
+
+var obdobi = [
+  ['2017-03', '2017-03-01', '2017-03-31'],
+  ['2017-04', '2017-04-01', '2017-04-30'],
+  ['2017-05', '2017-05-01', '2017-05-31'],
+  ['2017-06', '2017-06-01', '2017-06-30'],
+  ['2017-07', '2017-07-01', '2017-07-31'],
+  ['2017-08', '2017-08-01', '2017-08-31'],
+  ['2017-09', '2017-09-01', '2017-09-30'],
+  ['2017-10', '2017-10-01', '2017-10-31'],
+  ['2018-03', '2018-03-01', '2018-03-31'],
+  ['2018-04', '2018-04-01', '2018-04-30'],
+  ['2018-05', '2018-05-01', '2018-05-31'],
+  ['2018-06', '2018-06-01', '2018-06-30'],
+  ['2018-07', '2018-07-01', '2018-07-31'],
+  ['2018-08', '2018-08-01', '2018-08-31'],
+  ['2018-09', '2018-09-01', '2018-09-30'],
+  ['2018-10', '2018-10-01', '2018-10-31'],
+  ['2019-03', '2019-03-01', '2019-03-31'],
+  ['2019-04', '2019-04-01', '2019-04-30'],
+  ['2019-05', '2019-05-01', '2019-05-31'],
+  ['2019-06', '2019-06-01', '2019-06-30'],
+  ['2019-07', '2019-07-01', '2019-07-31'],
+  ['2019-08', '2019-08-01', '2019-08-31'],
+  ['2019-09', '2019-09-01', '2019-09-30'],
+  ['2019-10', '2019-10-01', '2019-10-31'],
+  ['2020-03', '2020-03-01', '2020-03-31'],
+  ['2020-04', '2020-04-01', '2020-04-30'],
+  ['2020-05', '2020-05-01', '2020-05-31'],
+  ['2020-06', '2020-06-01', '2020-06-30'],
+  ['2020-07', '2020-07-01', '2020-07-31'],
+  ['2020-08', '2020-08-01', '2020-08-31'],
+  ['2020-09', '2020-09-01', '2020-09-30'],
+  ['2020-10', '2020-10-01', '2020-10-31'],
+];
+
+// =============================================
+// Funkce pro NDVI a NDMI (Sentinel-2)
+// =============================================
+
+function getSentinelIndices(startDate, endDate, geometry) {
+  var s2 = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+    .filterBounds(geometry)
+    .filterDate(startDate, endDate)
+    .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 50))
+    .select(['B4', 'B8', 'B11'])  
+    .median();
+  
+  var ndvi = s2.normalizedDifference(['B8', 'B4']).rename('NDVI');
+  var ndmi = s2.normalizedDifference(['B8', 'B11']).rename('NDMI');
+  var combined = ndvi.addBands(ndmi);
+  
+  var count = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+    .filterBounds(geometry)
+    .filterDate(startDate, endDate)
+    .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 50))
+    .size();
+  
+  var result = ee.Algorithms.If(
+    count.gt(0),
+    combined.reduceRegion({
+      reducer: ee.Reducer.mean(),
+      geometry: geometry,
+      scale: 10
+    }),
+    ee.Dictionary({'NDVI': null, 'NDMI': null})
+  );
+  
+  return result;
+}
+
+// =============================================
+// Funkce pro LST (Landsat 8/9)
+// =============================================
+
+function getLST(startDate, endDate, geometry) {
+  var landsat = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+    .merge(ee.ImageCollection('LANDSAT/LC09/C02/T1_L2'))
+    .filterBounds(geometry)
+    .filterDate(startDate, endDate)
+    .filter(ee.Filter.lt('CLOUD_COVER', 50));
+  
+  var calcLST = function(image) {
+    var bt = image.select('ST_B10')
+                  .multiply(0.00341802)
+                  .add(149.0)
+                  .subtract(273.15);
+    var ndvi = image.normalizedDifference(['SR_B5', 'SR_B4']);
+    var pv = ndvi.subtract(ee.Number(0.2))
+                 .divide(ee.Number(0.6))
+                 .pow(2).rename('pv');
+    var emissivity = pv.multiply(0.004).add(0.986).rename('em');
+    var lst = bt.expression(
+      'BT / (1 + (0.00115 * BT / 1.438) * log(em))',
+      {'BT': bt, 'em': emissivity}
+    ).rename('LST');
+    return lst;
+  };
+  
+  var lstMedian = landsat.map(calcLST).median();
+  
+  var result = ee.Algorithms.If(
+    landsat.size().gt(0),
+    lstMedian.reduceRegion({
+      reducer: ee.Reducer.mean(),
+      geometry: geometry,
+      scale: 30
+    }),
+    ee.Dictionary({'LST': null})
+  );
+  
+  return result;
+}
+
+// =============================================
+// Výpočet pro všechny lokality a období
+// =============================================
+
+var tabulka = ee.FeatureCollection(
+  ee.List(siteIds).map(function(siteId) {
+    
+    var fve = lokality
+      .filter(ee.Filter.eq('site_id', siteId))
+      .filter(ee.Filter.eq('type', 'FVE_buffer'))
+      .geometry();
+    
+    var ctrl = lokality
+      .filter(ee.Filter.eq('site_id', siteId))
+      .filter(ee.Filter.eq('type', 'ctrl'))
+      .geometry();
+    
+    var radky = ee.List(obdobi).map(function(o) {
+      o = ee.List(o);
+      var label = o.get(0);
+      var start = ee.String(o.get(1));
+      var end   = ee.String(o.get(2));
+      
+      var sentFve  = ee.Dictionary(getSentinelIndices(start, end, fve));
+      var sentCtrl = ee.Dictionary(getSentinelIndices(start, end, ctrl));
+      var lstFve   = ee.Dictionary(getLST(start, end, fve));
+      var lstCtrl  = ee.Dictionary(getLST(start, end, ctrl));
+      
+      return ee.Feature(null, {
+        'site_id':   siteId,
+        'Obdobi':    label,
+        'NDVI_FVE':  sentFve.get('NDVI'),
+        'NDVI_ctrl': sentCtrl.get('NDVI'),
+        'NDMI_FVE':  sentFve.get('NDMI'),
+        'NDMI_ctrl': sentCtrl.get('NDMI'),
+        'LST_FVE':   lstFve.get('LST'),
+        'LST_ctrl':  lstCtrl.get('LST')
+      });
+    });
+    
+    return radky;
+  }).flatten()
+);
+
+// =============================================
+// Export do Google Drive
+// =============================================
+
+Export.table.toDrive({
+  collection: tabulka,
+  description: 'PartA_vsechny_lokality',
+  folder: 'Diplomka',
+  fileNamePrefix: 'PartA_vsechny_lokality',
+  fileFormat: 'CSV'
+});
