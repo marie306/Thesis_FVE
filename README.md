@@ -17,4 +17,4 @@ Landsat: NDVI, BSI, LST
 Časová řada bez kontroly
 
 ## Software
-Google Earth Engine, QGIS, Jamovi, Python
+Google Earth Engine (JacaScript API), QGIS, Jamovi
