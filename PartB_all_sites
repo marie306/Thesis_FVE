@@ -1,0 +1,193 @@
+// =============================================
+// Část B – Before-After, všechny lokality
+// Senzor: Landsat 5 (2007-2012), Landsat 8/9 (2013+)
+// Indexy: NDVI, BSI, LST
+// =============================================
+
+// Načíst polygony z assetu
+var lokality = ee.FeatureCollection(
+  'projects/diplomka-fv-2018/assets/lokality_fve_all');
+
+// =============================================
+// Funkce pro generování časových oken
+// =============================================
+
+function getObdobi(installYear) {
+  var years = [
+    installYear - 3,
+    installYear - 2,
+    installYear - 1,
+    installYear + 1,
+    installYear + 2,
+    installYear + 3,
+    installYear + 4,
+    installYear + 5,
+    2017, 2018, 2020
+  ];
+  
+  var months = [
+    ['03','31'],['04','30'],['05','31'],['06','30'],
+    ['07','31'],['08','31'],['09','30'],['10','31']
+  ];
+  
+  var obdobi = [];
+  years.forEach(function(y) {
+    months.forEach(function(m) {
+      obdobi.push([
+        String(y) + '-' + m[0],
+        String(y) + '-' + m[0] + '-01',
+        String(y) + '-' + m[0] + '-' + m[1],
+        y
+      ]);
+    });
+  });
+  return obdobi;
+}
+
+// =============================================
+// Seznam lokalit s roky instalace
+// =============================================
+
+var sites = [
+  {id: 'veprek',    periods: getObdobi(2010)},
+  {id: 'veseli',    periods: getObdobi(2010)},
+  {id: 'turany',    periods: getObdobi(2010)},
+  {id: 'stribro',   periods: getObdobi(2009)},
+  {id: 'sokolnice', periods: getObdobi(2010)},
+  {id: 'brest',     periods: getObdobi(2010)},
+  {id: 'sevetin',   periods: getObdobi(2010)},
+];
+
+// =============================================
+// Funkce pro výběr kolekce podle roku
+// =============================================
+
+function getParams(year) {
+  if (year <= 2012) {
+    return {
+      col1: 'LANDSAT/LT05/C02/T1_L2',
+      col2: 'LANDSAT/LE07/C02/T1_L2',  // ← Landsat 7
+      red:  'SR_B3',
+      nir:  'SR_B4',
+      swir: 'SR_B5',
+      blue: 'SR_B1',
+      thermal: 'ST_B6'
+    };
+  } else {
+    return {
+      col1: 'LANDSAT/LC08/C02/T1_L2',
+      col2: 'LANDSAT/LC09/C02/T1_L2',
+      red:  'SR_B4',
+      nir:  'SR_B5',
+      swir: 'SR_B6',
+      blue: 'SR_B2',
+      thermal: 'ST_B10'
+    };
+  }
+}
+
+// =============================================
+// Funkce pro výpočet NDVI, BSI, LST
+// =============================================
+
+function getIndices(startDate, endDate, geometry, year) {
+  var p = getParams(year);
+  
+  var col = ee.ImageCollection(p.col1)
+            .merge(ee.ImageCollection(p.col2));
+  
+  var landsat = col
+    .filterBounds(geometry)
+    .filterDate(startDate, endDate)
+    .filter(ee.Filter.lt('CLOUD_COVER', 70))
+    .select([p.red, p.nir, p.swir, p.blue, p.thermal]);
+  
+  var calcIndices = function(image) {
+    var ndvi = image.normalizedDifference([p.nir, p.red]).rename('NDVI');
+    var bsi = image.expression(
+      '(SWIR + RED - NIR - BLUE) / (SWIR + RED + NIR + BLUE)',
+      {
+        'SWIR': image.select(p.swir),
+        'RED':  image.select(p.red),
+        'NIR':  image.select(p.nir),
+        'BLUE': image.select(p.blue)
+      }
+    ).rename('BSI');
+    var bt = image.select(p.thermal)
+                  .multiply(0.00341802)
+                  .add(149.0)
+                  .subtract(273.15);
+    var pv = ndvi.subtract(ee.Number(0.2))
+                 .divide(ee.Number(0.6))
+                 .pow(2).rename('pv');
+    var emissivity = pv.multiply(0.004).add(0.986).rename('em');
+    var lst = bt.expression(
+      'BT / (1 + (0.00115 * BT / 1.438) * log(em))',
+      {'BT': bt, 'em': emissivity}
+    ).rename('LST');
+    return ndvi.addBands(bsi).addBands(lst);
+  };
+  
+  var median = landsat.map(calcIndices).median();
+  
+  var result = ee.Algorithms.If(
+    landsat.size().gt(0),
+    median.reduceRegion({
+      reducer: ee.Reducer.mean(),
+      geometry: geometry,
+      scale: 30
+    }),
+    ee.Dictionary({'NDVI': null, 'BSI': null, 'LST': null})
+  );
+
+  return result;
+}
+
+// =============================================
+// Výpočet pro všechny lokality
+// =============================================
+
+var allFeatures = [];
+
+sites.forEach(function(site) {
+  var siteId = site.id;
+  var obdobi = site.periods;
+  
+  var fve = lokality
+    .filter(ee.Filter.eq('site_id', siteId))
+    .filter(ee.Filter.eq('type', 'FVE_buffer'))
+    .geometry();
+  
+  obdobi.forEach(function(o) {
+    var label = o[0];
+    var start = o[1];
+    var end   = o[2];
+    var year  = o[3];
+    
+    var indices = ee.Dictionary(getIndices(start, end, fve, year));
+    
+    var feature = ee.Feature(null, {
+      'site_id': ee.String(siteId),
+      'Obdobi':  label,
+      'NDVI':    indices.get('NDVI'),
+      'BSI':     indices.get('BSI'),
+      'LST':     indices.get('LST')
+    });
+    
+    allFeatures.push(feature);
+  });
+});
+
+var tabulka = ee.FeatureCollection(allFeatures);
+
+// =============================================
+// Export do Google Drive
+// =============================================
+
+Export.table.toDrive({
+  collection: tabulka,
+  description: 'PartB_vsechny_lokality',
+  folder: 'Diplomka',
+  fileNamePrefix: 'PartB_vsechny_lokality',
+  fileFormat: 'CSV'
+});
