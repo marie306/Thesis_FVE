@@ -1,8 +1,7 @@
 # Thesis_FVE
 
 ## Téma
-Evaluation of Photovoltaic Park Response to Extreme Drought and Contrasting Climatic Conditions 
-Compared to Intensively Managed Arable Land Using Remote Sensing Data
+Evaluation of Photovoltaic Park Response to Extreme Drought Compared to Intensively Managed Arable Land Using Remote Sensing Data
 
 ## Struktura repozitáře
 - `/scripts` – GEE JavaScript skripty a Python kód
@@ -17,4 +16,4 @@ Landsat: NDVI, BSI, LST
 Časová řada bez kontroly
 
 ## Software
-Google Earth Engine (JacaScript API), QGIS, Jamovi
+Google Earth Engine (JavaScript API), QGIS, Jamovi
