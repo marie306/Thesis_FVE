@@ -1,19 +1,19 @@
 # Thesis_FVE
 
-## Téma
+## Topic
 Evaluation of Photovoltaic Park Response to Extreme Drought Compared to Intensively Managed Arable Land Using Remote Sensing Data
 
-## Struktura repozitáře
-- `/scripts` – GEE JavaScript skripty a Python kód
-- `METHODOLOGY.md` – metodická rozhodnutí a jejich odůvodnění
+## Repository Structure
+- `/scripts` – GEE JavaScript scripts and Python code
+- `METHODOLOGY.md` – methodological decisions and their justification
 
-## Část A – Reakce na sucho (FVE vs. kontrola)
+## Part A – Drought Response (PV park vs. control)
 Sentinel-2: NDVI, NDMI | Landsat: LST
-Paired site design, párový t-test
+Paired site design, paired t-test
 
-## Část B – Dlouhodobý vývoj uvnitř FVE (before-after)
+## Part B – Long-term Development Within the PV Park (before–after)
 Landsat: NDVI, BSI, LST
-Časová řada bez kontroly
+Time series without control
 
 ## Software
 Google Earth Engine (JavaScript API), QGIS, Jamovi
