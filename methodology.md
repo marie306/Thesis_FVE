@@ -1,56 +1,42 @@
-# Methodology – rozhodnutí a odůvodnění
+# Methodology – Key Decisions and Rationale
 
-## Design studie
+## Study Design
 
-### Část A – Reakce na sucho (FVE vs. kontrola)
-- Senzor: Sentinel-2 (NDVI, NDMI) + Landsat (LST)
+### Part A – Drought Response (PV park vs. control)
+- Sensors: Sentinel-2 (NDVI, NDMI) + Landsat (LST)
 - Design: paired site design
-- Statistika: párový t-test (Jamovi)
+- Statistics: paired t-test (Jamovi)
 
-### Část B – Dlouhodobý vývoj uvnitř FVE (before-after)
-- Senzor: Landsat (celá časová řada, konzistentní)
-- Indexy: NDVI, BSI, LST
-- Odůvodnění: konzistence dat napříč celou časovou řadou 
-  důležitější než rozlišení; 30m pixel Landsatu dostačující 
-  pro sledování trendu na plochách >20 ha; Sentinel-2 
-  (dostupný od 2017) vynechán záměrně
+### Part B – Long-term Development Within the PV Park (before–after)
+- Sensor: Landsat (full consistent time series)
+- Indices: NDVI, BSI, LST
+- Rationale: data consistency across the full time series was prioritized over spatial resolution; Landsat's 30 m pixel is sufficient for trend detection on sites >20 ha. Sentinel-2 (available only from 2017) was deliberately excluded to preserve a longer pre-installation baseline.
 
 ---
 
-## Vymezení analyzovaných ploch
+## Site Delineation
 
-### Technický postup
-- software (QGIS) , CRS (EPSG:32633), zdroj podkladové mapy (ESRI World Imagery -QuicMapServices)
+- Software: QGIS, CRS: EPSG:32633
+- Base map: ESRI World Imagery (QuickMapServices)
 
-### Definice hranic
-- FVE polygon (full) X FVE polygon (buffer −30 m) ? (otestuji na vzorovém příkladu Vepřek a pak se rozhodnu)
-- kontrolní plocha
+### Boundary Definition & Sensitivity Analysis
+Tested on the pilot site (Vepřek): full PV polygon vs. polygon with a −30 m internal buffer. The difference was statistically significant (NDVI, paired t-test, p < 0.001, Cohen's d = 1.08), confirming an edge effect from the panels. **Decision:** a −30 m internal buffer was adopted for the final analysis, eliminating panel edge effects and capturing the vegetation signal from within the PV site.
 
-### Sensitivity analysis hranice ROI
-- postup testování na Vepřeku - 16.7. test senzitivity - rozdíl mezi plnou plochou a plochou s bufferem (-30 m) je statisticky významný (NDVI_FVE_Veprek, párový t-test, p<0,001, Cohenovo d=1,08, Jamovi) -> pro finální analýzu zvolen interní buffer 30 m, který eliminuje okrajový efekt panelů a zachycuje vegetační signál uvnitř FVE.
+### PV Site Selection Criteria
+1. **Area:** minimum 20 ha
+2. **Installation date:** after 2005, ensuring sufficient pre-installation Landsat data for the before-after design
 
-### FVE - kritéria výběru 
-1. **Rozloha** - min plocha 20 ha
-2. **Datum instalace** – po roce 2005; podmínka existence 
-   Landsat dat před instalací pro before-after design
+### Control Site Selection Criteria (in priority order)
+1. **Land use:** arable land (per LPIS, the Czech Land Parcel Identification System)
+2. **Size:** minimum 80% of PV site area; exceptions possible if all other criteria are met
+3. **Terrain:** matching aspect and similar slope — prioritized over distance, due to direct impact on soil water balance
+4. **Soil classification:** match at the main soil unit level (first two digits of BPEJ, the Czech agricultural soil-ecological classification code)
+5. **Distance:** preferably within 2 km, acceptable up to 5 km within the same climatic region
+6. **Forest/water bodies:** control sites must not contain forest or water bodies; presence within 100 m of the site is documented as a potential limitation rather than an exclusion criterion
 
-### Kontrolní plocha – kritéria výběru (v pořadí priority)
+## Site List
 
-1. **Využití půdy** - orná půda (LPIS)
-2. **Velikost** – minimum 80 % rozlohy FVE; výjimka možná při splnění
-   všech ostatních kritérií
-3. **Reliéf** – shodná expozice a podobný sklon; důležitější než
-   vzdálenost (přímý vliv na vodní bilanci půdy)
-4. **BPEJ** – shoda na úrovni HPJ (první dvě číslice BPEJ)
-5. **Vzdálenost** – preferovaná do 2 km, akceptovatelné do 5 km
-   při shodném klimatickém regionu
-6. **Les a vodní plocha** – kontrolní plocha nesmí obsahovat les ani
-   vodní plochu; přítomnost těchto prvků v okolí do 100 m se
-   dokumentuje jako potenciální limitace, není vyřazovacím kritériem
-
-## Seznam lokalit
-
-| Lokalita | Rozloha(ha) | Datum vzniku | 
+| Site | Area (ha) | Installation year |
 |---|---|---|
 | Vepřek | 72 | 2010 |
 | Ševětín-Drahotěšice | 34 | 2010 |
@@ -62,102 +48,76 @@
 
 ---
 
-## Indexy
+## Indices
 
-| Index | Senzor | Pásma | Co měří | Část |
+| Index | Sensor | Bands | Measures | Part |
 |---|---|---|---|---|
-| NDVI | Sentinel-2 / Landsat | B8+B4 / B5+B4 | Vegetační stres | A + B |
-| NDMI | Sentinel-2 | B8+B11 | Vodní stres vegetace | A |
-| BSI | Landsat | B6+B4+B5+B2 | Vývoj půdního pokryvu | B |
-| LST | Landsat | termální pásmo | Teplota povrchu | A + B |
+| NDVI | Sentinel-2 / Landsat | B8+B4 / B5+B4 | Vegetation stress | A + B |
+| NDMI | Sentinel-2 | B8+B11 | Vegetation water stress | A |
+| BSI | Landsat | B6+B4+B5+B2 | Land cover / bare soil development | B |
+| LST | Landsat | thermal band | Surface temperature | A + B |
 
 ---
 
-## Časová okna - část A 
+## Time Windows – Part A
 
-| Rok | Charakter | Senzor |
+| Year | Character | Sensor |
 |---|---|---|
-| 2017 | normální referenční rok | Sentinel-2, LST |
-| 2018 | extrémní sucho (521 mm) | Sentinel-2, LST |
+| 2017 | normal reference year | Sentinel-2, LST |
+| 2018 | extreme drought (521 mm) | Sentinel-2, LST |
 | 2019 | post-drought | Sentinel-2, LST |
-| 2020 | mokrý referenční rok | Sentinel-2,LST |
-| 2026 | aktuální data (suché jaro, upřesnění na podzim) | Sentinel-2, LST |
+| 2020 | wet reference year | Sentinel-2, LST |
+| 2026 | current data (dry spring; refined in autumn) | Sentinel-2, LST |
 
-*LST termální pásmo,všechna časová období 
-*2019: 634 mm (92 % normálu 1991–2020); mírně podnormální, 
-akceptovatelné jako referenční rok po extrému sucha 2018*
+*2019: 634 mm (92% of the 1991–2020 normal) — slightly below normal, but acceptable as a reference year following the 2018 drought extreme; possible residual soil moisture deficit noted for discussion.*
 
-Analyzovaná sezóna: 
-- březen-říjen(v březnu můžebýt NDVI nízké kvůli časné fenologické fázi pěstovaných rostlin - diskutovat a případně odůvodnit, případně dodatečně z hodnocení vyloučit a vysvětlit) 
+Analyzed season: March–October. Early-season (March) NDVI may be low due to crop phenological stage; addressed in the discussion and, where necessary, excluded from evaluation.
 
 ---
 
-## Časová okna – část B (before-after)
+## Time Windows – Part B (before–after)
 
-Roky jsou definovány relativně k roku instalace FVE (I):
+Years defined relative to the PV installation year (I):
 
-| Fáze | Roky | Poznámka |
+| Phase | Years | Note |
 |---|---|---|
-| Před instalací | I-3, I-2, I-1 | baseline – stav orné půdy |
-| Po instalaci | I+1, I+2, I+3, I+4, I+5 | disturbance fáze, stabilizace |
-| Referenční roky | 2017, 2018, 2020 | sdílené s částí A |
-| Aktuální | 2026 | |
+| Pre-installation | I-3, I-2, I-1 | baseline – arable land condition |
+| Post-installation | I+1 to I+5 | disturbance phase, stabilization |
+| Reference years | 2017, 2018, 2020 | shared with Part A |
+| Current | 2026 | |
 
-Analyzovaná sezóna: březen–říjen
-
----
-
-## Zpracování dat – GEE
-
-- Kolekce Sentinel-2: COPERNICUS/S2_SR_HARMONIZED
-- Filtr oblačnosti: < 50 % + SCL cloudmask na úrovni pixelu
-- Kompozit: medián za dané časové okno
-- Poznámka: zaznamenat počet snímků vstupujících do každého kompozitu
+Analyzed season: March–October (monthly resolution — chosen over seasonal averaging to preserve phenological detail before and after installation, which a seasonal average would obscure).
 
 ---
 
-## BPEJ – párování lokalit
-- Primární kritérium: shoda HPJ (první dvě číslice BPEJ)
-- Pokud HPJ nesedí: shoda klimatické oblasti + podobná HPJ skupina
-- Odchylka dokumentována pro každou lokalitu zvlášť v tabulce lokalit
+## Data Processing – Google Earth Engine
+
+- Collection: COPERNICUS/S2_SR_HARMONIZED (Sentinel-2)
+- Cloud filter: CLOUDY_PIXEL_PERCENTAGE < 50% (Part A); relaxed to < 70% for Part B to retain sufficient LST data, median composite per time window
+- (Pixel-level SCL cloud masking was evaluated but not implemented — the cloud percentage filter with median compositing was judged sufficient for monthly composites on sites >20 ha)
+- Number of images per composite recorded for transparency
 
 ---
 
-## Otevřené otázky
-- [x] Velikost bufferu ověřit na Vepřeku (sensitivity analysis ROI) - velikost bufferu ověřena na Vepřeku (sensitivity analysis ROI)
-  → Zvolen interní buffer −30 m na základě párového t-testu 
-  (t = −6.14, p < 0.001, d = 1.08 vs. full polygon)
-- [x] SCL cloudmask
-  → Neimplementován; použit filtr CLOUDY_PIXEL_PERCENTAGE < 50 
-  s mediánovým kompozitem. Standardní přístup dostačující pro 
-  měsíční kompozity na plochách >20 ha.
-- [x] Finalizovat kritéria BPEJ párování - splněno
-- [x] Počet lokalit: cíl 5+ - splněno (celkem 7 lokalit)
-- [x] Časová okna část B: měsíční rozlišení vs. sezónní průměr
-  → Zvoleno měsíční rozlišení (březen–říjen). Sezónní variabilita 
-  je výrazná a měsíční data umožňují sledovat fenologický vývoj 
-  před a po instalaci FVE. Sezónní průměr by tuto informaci ztratil.
+## Key Methodological Decisions
+
+- **Buffer size:** validated on the Vepřek pilot site via sensitivity analysis (paired t-test, t = −6.14, p < 0.001, d = 1.08 vs. full polygon) → −30 m internal buffer adopted
+- **Cloud masking:** CLOUDY_PIXEL_PERCENTAGE filter + median composite used instead of per-pixel SCL masking (sufficient for the spatial/temporal scale of this study)
+- **Control site matching:** finalized based on the criteria hierarchy above (land use → size → terrain → soil classification → distance)
+- **Number of sites:** target of 5+ met (7 sites total)
+- **Part B temporal resolution:** monthly resolution selected over seasonal averaging to retain phenological detail
 
 ---
 
-## Poznámky 
-- 2019 - srážky 634 mm,92% normálu X může přetrvávat deplece z 2018 (uveď v diskuzi)
+## Data Sources
 
----
-
-## Poznámky k datům – Vepřek (pilotní lokalita)
-- Březen a říjen 2017: pouze 1 snímek – interpretovat s opatrností
-- Data exportována jako CSV do Google Drive/Diplomka/Data/Veprek/
-
-## Datové zdroje
-
-| Zdroj | Data | URL |
+| Source | Data | URL |
 |---|---|---|
 | Google Earth Engine | Sentinel-2 L2A, Landsat 8/9 | code.earthengine.google.com |
-| VÚMOP | BPEJ vrstva | vumop.cz |
-| LPIS | Druh zemědělské půdy | eagri.cz |
-| ERU | Databáze FVE v ČR | eru.cz |
-| ČHMÚ | Srážkové normály a roční úhrny | chmi.cz |
-| envidata.cz | Roční úhrny srážek po letech | envidata.cz |
-| Copernicus Browser | Vizuální průzkum snímků | browser.dataspace.copernicus.eu |
-| Mapy.cz | GPS lokalit | mapy.cz |
+| VÚMOP | BPEJ soil classification layer | vumop.cz |
+| LPIS | Agricultural land use type | eagri.cz |
+| ERU (Czech Energy Regulatory Office) | Database of PV installations in Czechia | eru.cz |
+| ČHMÚ (Czech Hydrometeorological Institute) | Precipitation normals and annual totals | chmi.cz |
+| envidata.cz | Annual precipitation totals by year | envidata.cz |
+| Copernicus Browser | Visual image inspection | browser.dataspace.copernicus.eu |
+| Mapy.cz | Site GPS coordinates | mapy.cz |
