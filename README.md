@@ -21,15 +21,15 @@ The analysis includes:
 Site selection → paired control selection → spatial data preparation (QGIS) → satellite data processing & vegetation/surface metrics (GEE) → statistical analysis (Jamovi) → drought response & recovery evaluation
 
 ## Repository Structure
-- `GEE_scripts/` — Google Earth Engine scripts for satellite data processing and calculation of vegetation and surface metrics
+- `GEE_scripts` — Google Earth Engine scripts for satellite data processing and calculation of vegetation and surface metrics
 - `methodology.md` — detailed description of site selection, paired study design, data sources and analytical decisions
 - `README.md` — project overview
 
 ## Tools & Data
-Tools: QGIS, Google Earth Engine
-Satellite data: Sentinel-2 (NDVI, NDMI), Landsat (NDVI, BSI, LST)
-Study design: paired photovoltaic park–arable land sites
-Statistical analysis: paired statistical testing (Jamovi)
+- Tools: QGIS, Google Earth Engine
+- Satellite data: Sentinel-2 (NDVI, NDMI), Landsat (NDVI, BSI, LST)
+- Study design: paired photovoltaic park–arable land sites
+- Statistical analysis: paired statistical testing (Jamovi)
 
 ## Status
 MSc thesis project — analysis in progress, expected completion 2027.
