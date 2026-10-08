@@ -1,0 +1,191 @@
+// =====================================================================
+// FVE vs. kontrola – Part A (v2)
+// Verze, ze které vznikl export 2_partA_all_sites.csv (7. 10. 2026)
+// NDVI, NDMI, BSI (Sentinel-2) + LST (Landsat 8/9)
+// Měsíční kompozity, maska mraků na úrovni pixelu, kontrolní sloupce
+// =====================================================================
+//
+// Změny oproti v1:
+//  - Sentinel-2: maska mraků po pixelech (Cloud Score+) místo filtru
+//    CLOUDY_PIXEL_PERCENTAGE (ten se počítá za celou dlaždici 110×110 km)
+//  - indexy se počítají pro každou scénu zvlášť, teprve pak medián
+//  - Landsat LST: maska QA_PIXEL (mraky, stíny, sníh, cirrus),
+//    odstranění fill hodnot (ST_B10 = 0 → po přepočtu −124 °C)
+//  - nové kontrolní sloupce: počet platných pozorování a podíl platné plochy
+//  - okno březen–září, roky 2017–2020 + 2026
+//  - jeden export, jeden řádek = lokalita × typ plochy × měsíc
+// =====================================================================
+
+
+// ---------- 1) NASTAVENÍ – zkontroluj podle svého assetu ----------
+
+var ASSET      = 'projects/diplomka-fv-2018/assets/lokality_fve_all';
+var SITE_FIELD = 'site_id';               // atribut s názvem lokality
+var TYPE_FIELD = 'type';                  // atribut s typem plochy
+var TYPES      = ['FVE_buffer', 'ctrl'];  // které plochy analyzovat
+
+var YEARS  = [2017, 2018, 2019, 2020, 2026];
+var MONTHS = [3, 4, 5, 6, 7, 8, 9];       // březen–září
+
+var CS_THRESHOLD = 0.60;  // Cloud Score+: pixel je "čistý", když cs_cdf >= práh
+                          // (doporučeno 0.5–0.65; hodnotu uveď v metodice)
+
+
+// ---------- 2) Polygony ----------
+
+var polygons = ee.FeatureCollection(ASSET)
+  .filter(ee.Filter.inList(TYPE_FIELD, TYPES));
+
+// Kontrola: počet prvků a hodnoty typů ploch.
+// Pokud „Polygonů po filtru“ není 14, uprav TYPE_FIELD / TYPES výše.
+var raw = ee.FeatureCollection(ASSET);
+print('Počet prvků v assetu (21):', raw.size());
+print('Hodnoty type:', raw.aggregate_array(TYPE_FIELD).distinct());
+print('Polygonů po filtru (má být 14):', polygons.size());
+
+
+// ---------- 3) Sentinel-2: NDVI, NDMI, BSI ----------
+
+var csPlus = ee.ImageCollection('GOOGLE/CLOUD_SCORE_PLUS/V1/S2_HARMONIZED');
+
+function s2Month(start, end) {
+
+  var col = ee.ImageCollection('COPERNICUS/S2_SR_HARMONIZED')
+    .filterBounds(polygons)
+    .filterDate(start, end)
+    .linkCollection(csPlus, ['cs_cdf'])       // připojí Cloud Score+ ke každé scéně
+    .map(function(img) {
+      // maska mraků pro tuto scénu
+      var clear = img.select('cs_cdf').gte(CS_THRESHOLD);
+
+      // reflektance 0–1 (násobení desetinným číslem → výsledek je float)
+      var sr = img.select(['B2', 'B4', 'B8', 'B11']).multiply(0.0001);
+
+      var ndvi = sr.normalizedDifference(['B8', 'B4']).rename('NDVI');
+      var ndmi = sr.normalizedDifference(['B8', 'B11']).rename('NDMI');
+      var bsi  = sr.expression(
+        '((SWIR + RED) - (NIR + BLUE)) / ((SWIR + RED) + (NIR + BLUE))', {
+          SWIR: sr.select('B11'),
+          RED:  sr.select('B4'),
+          NIR:  sr.select('B8'),
+          BLUE: sr.select('B2')
+        }).rename('BSI');
+
+      return ndvi.addBands(ndmi).addBands(bsi).updateMask(clear);
+    });
+
+  // měsíční medián z čistých pixelů
+  var composite = col.median();
+
+  // kolikrát byl každý pixel v měsíci platně pozorován
+  var nValid = col.select('NDVI').count().rename('S2_n_valid');
+
+  // 1 = pixel měl aspoň jedno platné pozorování, 0 = neměl
+  // (průměr přes polygon = podíl platné plochy)
+  var validFrac = nValid.gt(0).unmask(0).rename('S2_valid_frac');
+
+  var out = composite.addBands(nValid).addBands(validFrac);
+
+  // když v měsíci není žádná scéna, vrátí prázdný obrázek (→ prázdné buňky v CSV)
+  var empty = ee.Image.constant([0, 0, 0, 0, 0])
+    .rename(['NDVI', 'NDMI', 'BSI', 'S2_n_valid', 'S2_valid_frac'])
+    .updateMask(ee.Image(0));
+
+  return ee.Image(ee.Algorithms.If(col.size().gt(0), out, empty));
+}
+
+
+// ---------- 4) Landsat 8/9: LST ----------
+
+var L89 = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+  .merge(ee.ImageCollection('LANDSAT/LC09/C02/T1_L2'));
+
+function lstMonth(start, end) {
+
+  var col = L89
+    .filterBounds(polygons)
+    .filterDate(start, end)
+    .map(function(img) {
+      // QA_PIXEL bity 0–5: fill, dilated cloud, cirrus, cloud, cloud shadow, snow
+      // všechny musí být 0 → bitwiseAnd(63) == 0   (63 = binárně 111111)
+      var clear = img.select('QA_PIXEL').bitwiseAnd(63).eq(0);
+
+      var st = img.select('ST_B10');
+      var valid = clear.and(st.gt(0));   // ST_B10 = 0 je fill (žádná data)
+
+      // přepočet na °C (Collection 2: scale 0.00341802, offset 149 K)
+      var lst = st.multiply(0.00341802).add(149.0).subtract(273.15).rename('LST');
+
+      // nejistota LST v kelvinech (ST_QA × 0.01) – exportuje se jen pro kontrolu
+      var unc = img.select('ST_QA').multiply(0.01).rename('LST_unc');
+
+      return lst.addBands(unc).updateMask(valid);
+    });
+
+  var composite = col.median();
+  var nValid    = col.select('LST').count().rename('L_n_valid');
+  var validFrac = nValid.gt(0).unmask(0).rename('L_valid_frac');
+
+  var out = composite.addBands(nValid).addBands(validFrac);
+
+  var empty = ee.Image.constant([0, 0, 0, 0])
+    .rename(['LST', 'LST_unc', 'L_n_valid', 'L_valid_frac'])
+    .updateMask(ee.Image(0));
+
+  return ee.Image(ee.Algorithms.If(col.size().gt(0), out, empty));
+}
+
+
+// ---------- 5) Smyčka přes roky a měsíce ----------
+// (JavaScript forEach – stejný princip jako dosud)
+
+var results = [];
+
+YEARS.forEach(function(y) {
+  MONTHS.forEach(function(m) {
+
+    var start = ee.Date.fromYMD(y, m, 1);
+    var end   = start.advance(1, 'month');
+
+    // Sentinel-2: průměr za každý polygon, rozlišení 10 m
+    var fc = s2Month(start, end).reduceRegions({
+      collection: polygons,
+      reducer: ee.Reducer.mean(),
+      scale: 10,
+      tileScale: 4
+    });
+
+    // Landsat: do stejných řádků přidá LST, rozlišení 30 m
+    fc = lstMonth(start, end).reduceRegions({
+      collection: fc,
+      reducer: ee.Reducer.mean(),
+      scale: 30,
+      tileScale: 4
+    });
+
+    // doplní rok a měsíc
+    fc = fc.map(function(f) {
+      return f.set({year: y, month: m, date: start.format('YYYY-MM')});
+    });
+
+    results.push(fc);
+  });
+});
+
+var table = ee.FeatureCollection(results).flatten();
+
+// Rychlá kontrola před exportem (prvních 5 řádků)
+print('Ukázka výsledků:', table.limit(5));
+
+
+// ---------- 6) Export ----------
+
+Export.table.toDrive({
+  collection: table,
+  description: 'PartA_vsechny_lokality_v2',
+  folder: 'Diplomka',
+  fileFormat: 'CSV',
+  selectors: [SITE_FIELD, TYPE_FIELD, 'year', 'month', 'date',
+              'NDVI', 'NDMI', 'BSI', 'S2_n_valid', 'S2_valid_frac',
+              'LST', 'LST_unc', 'L_n_valid', 'L_valid_frac']
+});
