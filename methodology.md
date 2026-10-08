@@ -121,3 +121,26 @@ Analyzed season: March–October (monthly resolution — chosen over seasonal av
 | envidata.cz | Annual precipitation totals by year | envidata.cz |
 | Copernicus Browser | Visual image inspection | browser.dataspace.copernicus.eu |
 | Mapy.cz | Site GPS coordinates | mapy.cz |
+
+## Plán statistické analýzy – část A (DiD)
+*Stanoveno 8. 10. 2026, před výpočtem*
+
+| | Hlavní | Sekundární | Citlivostní |
+|---|---|---|---|
+| Index | NDVI | LST, NDMI | — |
+| Kontrast | 2018 vs. 2020 | 2026 vs. 2020 | 2018 vs. průměr 2017 + 2020 |
+| Okno | IV–VI | IV–VI | III–IX |
+| Metrika | absolutní DiD | absolutní DiD | relativní DiD |
+| Test | jednovýběrový t-test DiD (n = 7) + Wilcoxon | stejně | stejně |
+| Výstup | průměrný DiD, 95% CI, d_z | stejně | jestli se mění směr nebo závěr |
+
+**Definice**
+- Δ = hodnota_FVE − hodnota_ctrl (lokalita × rok × měsíc), zprůměrováno za okno → jedna hodnota na lokalitu a rok
+- DiD = Δ_kontrastní rok − Δ_referenční rok (jedna hodnota na lokalitu)
+- Relativní DiD = rel_FVE − rel_ctrl, kde rel = (X_rok − X_ref) / X_ref
+- Interpretace (NDVI): DiD > 0 → FVE ztratila v suchu méně než kontrola
+
+**Vyřazení dat**
+- pár vyřazen, pokud valid_frac < 0,5 u FVE nebo kontroly (příznaky S2_ok, LST_ok)
+- LST: lokalita Břest vyřazena celá (technická mezera v produktu Landsat C2 L2 ST) → n = 6
+- 2019 nepoužit jako reference (rok po suchu)
