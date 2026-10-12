@@ -1,0 +1,180 @@
+// =====================================================================
+// Část B – Before-After (v2), všechny lokality
+// Senzory: Landsat 5 TM + 7 ETM+ (rok <= 2012), Landsat 8 + 9 OLI (rok >= 2013)
+// Indexy: NDVI, BSI (reflektance), LST (Landsat C2 L2 Surface Temperature)
+// =====================================================================
+//
+// Změny oproti v1:
+//  1) Reflektance se přepočítává z DN (× 0.0000275 − 0.2) PŘED výpočtem NDVI a BSI.
+//     V1 počítala indexy z DN – kvůli offsetu −0.2 se to v normalizovaném rozdílu
+//     nevykrátí a NDVI vycházelo zhruba poloviční.
+//  2) LST = přímo pásmo ST (Collection 2 už je teplota POVRCHU s korekcí emisivity).
+//     V1 aplikovala druhou korekci emisivity (navíc na °C místo K) – odstraněno.
+//  3) Maska mraků po pixelech (QA_PIXEL) místo CLOUD_COVER < 70 za celou scénu.
+//     Fill pixely (Landsat 7 SLC-off pruhy, okraje scén) se tím také odstraní.
+//  4) Indexy pro každou scénu zvlášť → medián; kontrolní sloupce n_valid a valid_frac
+//     zvlášť pro reflektanci (SR) a pro teplotu (ST) – ST může chybět i tam, kde SR je.
+//  5) Exportují se FVE_buffer i ctrl (ctrl jen pro případný BACI design, nic nenutí).
+//  6) Export pokrývá sjednocení let všech lokalit + 2017, 2018, 2020, 2026;
+//     sloupec rel_year = rok − rok instalace (výběr I−3…I+5 se pak dělá v analýze).
+//  7) Okno III–IX (shodně s částí A); změň MONTHS, pokud chceš III–X.
+//  8) (v2.1) NDVI a BSI jen z pixelů s fyzikálně platnou reflektancí (0–1 ve všech
+//     4 kanálech) – odstraní záporné reflektance z chybné atmosférické korekce.
+// =====================================================================
+
+
+// ---------- 1) NASTAVENÍ ----------
+
+var ASSET      = 'projects/diplomka-fv-2018/assets/lokality_fve_all';
+var SITE_FIELD = 'site_id';
+var TYPE_FIELD = 'type';
+var TYPES      = ['FVE_buffer', 'ctrl'];
+
+var INSTALL = {veprek: 2010, veseli: 2010, turany: 2010, stribro: 2009,
+               sokolnice: 2010, brest: 2010, sevetin: 2010};
+
+// sjednocení oken I−3…I+5 všech lokalit (2006–2015) + referenční roky
+var YEARS  = [2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015,
+              2017, 2018, 2020, 2026];
+var MONTHS = [3, 4, 5, 6, 7, 8, 9];
+
+
+// ---------- 2) Polygony ----------
+
+var polygons = ee.FeatureCollection(ASSET)
+  .filter(ee.Filter.inList(TYPE_FIELD, TYPES));
+print('Polygonů po filtru (má být 14):', polygons.size());
+
+// Diagnostika roku 2012 (ve v1 byl celý prázdný): kolik scén L7 existuje?
+print('Landsat 7 scén v roce 2012 nad lokalitami:',
+  ee.ImageCollection('LANDSAT/LE07/C02/T1_L2')
+    .filterBounds(polygons).filterDate('2012-01-01', '2013-01-01').size());
+
+
+// ---------- 3) Příprava jedné scény ----------
+
+// QA_PIXEL bity 0–5: fill, dilated cloud, cirrus (jen L8/9), cloud, cloud shadow, snow
+// všechny musí být 0  →  bitwiseAnd(63) == 0
+function finish(img, sr, st) {
+  var clear = img.select('QA_PIXEL').bitwiseAnd(63).eq(0);
+
+  // fyzikálně platná reflektance: všechny 4 kanály v rozsahu 0–1
+  // (odstraní chybnou atmosférickou korekci, např. scénu 2015-03 nad jižní Moravou)
+  var srValid = sr.reduce(ee.Reducer.min()).gt(0)
+                  .and(sr.reduce(ee.Reducer.max()).lt(1));
+  var srOK = clear.and(srValid);
+
+  var ndvi = sr.normalizedDifference(['NIR', 'RED']).rename('NDVI');
+  var bsi  = sr.expression(
+    '((SWIR + RED) - (NIR + BLUE)) / ((SWIR + RED) + (NIR + BLUE))', {
+      SWIR: sr.select('SWIR'), RED: sr.select('RED'),
+      NIR:  sr.select('NIR'),  BLUE: sr.select('BLUE')
+    }).rename('BSI');
+
+  // ST = 0 je fill (žádná data, např. chybí podklad emisivity) → maskovat
+  var lst = st.multiply(0.00341802).add(149.0).subtract(273.15).rename('LST');
+  var stOK = clear.and(st.gt(0));
+
+  return ndvi.updateMask(srOK)
+    .addBands(bsi.updateMask(srOK))
+    .addBands(lst.updateMask(stOK))
+    .copyProperties(img, ['system:time_start']);
+}
+
+// Landsat 5 TM / 7 ETM+
+function prepTM(img) {
+  var sr = img.select(['SR_B1', 'SR_B3', 'SR_B4', 'SR_B5'])
+    .multiply(0.0000275).add(-0.2)                 // DN → reflektance
+    .rename(['BLUE', 'RED', 'NIR', 'SWIR']);
+  return finish(img, sr, img.select('ST_B6'));
+}
+
+// Landsat 8 / 9 OLI
+function prepOLI(img) {
+  var sr = img.select(['SR_B2', 'SR_B4', 'SR_B5', 'SR_B6'])
+    .multiply(0.0000275).add(-0.2)
+    .rename(['BLUE', 'RED', 'NIR', 'SWIR']);
+  return finish(img, sr, img.select('ST_B10'));
+}
+
+var TM  = ee.ImageCollection('LANDSAT/LT05/C02/T1_L2')
+            .merge(ee.ImageCollection('LANDSAT/LE07/C02/T1_L2'));
+var OLI = ee.ImageCollection('LANDSAT/LC08/C02/T1_L2')
+            .merge(ee.ImageCollection('LANDSAT/LC09/C02/T1_L2'));
+
+
+// ---------- 4) Měsíční kompozit ----------
+
+var BANDS = ['NDVI', 'BSI', 'LST', 'SR_n_valid', 'SR_valid_frac',
+             'ST_n_valid', 'ST_valid_frac'];
+
+function monthComposite(year, start, end) {
+  var col = (year <= 2012 ? TM : OLI)
+    .filterBounds(polygons)
+    .filterDate(start, end)
+    .map(year <= 2012 ? prepTM : prepOLI);
+
+  var composite = col.median();                       // NDVI, BSI, LST
+  var nSR = col.select('NDVI').count().rename('SR_n_valid');
+  var nST = col.select('LST').count().rename('ST_n_valid');
+  var fSR = nSR.gt(0).unmask(0).rename('SR_valid_frac');
+  var fST = nST.gt(0).unmask(0).rename('ST_valid_frac');
+
+  var out = composite.addBands(nSR).addBands(fSR).addBands(nST).addBands(fST);
+
+  var empty = ee.Image.constant([0, 0, 0, 0, 0, 0, 0]).rename(BANDS)
+    .updateMask(ee.Image(0));
+
+  return ee.Image(ee.Algorithms.If(col.size().gt(0), out, empty));
+}
+
+
+// ---------- 5) Smyčka přes roky a měsíce ----------
+
+var install = ee.Dictionary(INSTALL);
+var results = [];
+
+YEARS.forEach(function(y) {
+  MONTHS.forEach(function(m) {
+    var start = ee.Date.fromYMD(y, m, 1);
+    var end   = start.advance(1, 'month');
+
+    var fc = monthComposite(y, start, end).reduceRegions({
+      collection: polygons,
+      reducer: ee.Reducer.mean(),
+      scale: 30,
+      tileScale: 4
+    });
+
+    fc = fc.map(function(f) {
+      var iy = ee.Number(install.get(f.get(SITE_FIELD)));
+      return f.set({
+        year: y,
+        month: m,
+        date: start.format('YYYY-MM'),
+        sensor: y <= 2012 ? 'TM_ETM' : 'OLI',
+        install_year: iy,
+        rel_year: ee.Number(y).subtract(iy)
+      });
+    });
+
+    results.push(fc);
+  });
+});
+
+var table = ee.FeatureCollection(results).flatten();
+print('Ukázka výsledků:', table.limit(5));
+
+
+// ---------- 6) Export ----------
+
+Export.table.toDrive({
+  collection: table,
+  description: 'PartB_vsechny_lokality_v2_1',
+  folder: 'Diplomka',
+  fileFormat: 'CSV',
+  selectors: [SITE_FIELD, TYPE_FIELD, 'year', 'month', 'date', 'sensor',
+              'install_year', 'rel_year',
+              'NDVI', 'BSI', 'SR_n_valid', 'SR_valid_frac',
+              'LST', 'ST_n_valid', 'ST_valid_frac']
+});
