@@ -144,3 +144,41 @@ Analyzed season: March–October (monthly resolution — chosen over seasonal av
 - pár vyřazen, pokud valid_frac < 0,5 u FVE nebo kontroly (příznaky S2_ok, LST_ok)
 - LST: lokalita Břest vyřazena celá (technická mezera v produktu Landsat C2 L2 ST) → n = 6
 - 2019 nepoužit jako reference (rok po suchu)
+
+## Plán statistické analýzy – část B (BACI)
+*Stanoveno 12. 10. 2026, před výpočtem*
+
+### Design
+- BACI (Before–After–Control–Impact): FVE (impact) vs. kontrolní orná půda (control), před vs. po instalaci FVE
+- Odůvodnění: přechod senzorů TM/ETM+ → OLI v roce 2013 a meziroční rozdíly počasí působí na FVE i kontrolu stejně a v rozdílu FVE − ctrl se vyruší; samotná časová řada FVE by je nedokázala odlišit od efektu instalace
+- Data: `PartB_vsechny_lokality_v2_1` (GEE skript FVE_partB_v2.js, v2.1), Landsat C2 L2, okno IV–VI
+
+### Definice
+- Δ = hodnota_FVE − hodnota_ctrl (lokalita × rok × měsíc), zprůměrováno za IV–VI → jedna hodnota na lokalitu a rok
+- Δ_před = průměr Δ za roky I−3, I−2, I−1
+- Δ_po = průměr Δ za roky I+1 až I+5
+- BACI = Δ_po − Δ_před (jedna hodnota na lokalitu)
+- I = rok instalace (Stříbro 2009, ostatní 2010); rok instalace se do analýzy nezahrnuje
+- Interpretace (NDVI): BACI < 0 → po instalaci se vegetace FVE vůči kontrole snížila
+
+### Plán testů
+
+| | Hlavní | Sekundární | Popisné / citlivostní |
+|---|---|---|---|
+| Index | NDVI | BSI, LST | — |
+| Kontrast | Δ_po (I+1…I+5) vs. Δ_před (I−3…I−1) | stejně | Δ v referenčních letech 2017, 2018, 2020, 2026 vs. Δ_před; rozdělení po instalaci na I+1…I+2 a I+3…I+5 |
+| Okno | IV–VI | IV–VI | IV–VI |
+| Test | jednovýběrový t-test BACI (n = 7) + Wilcoxon | stejně (LST n = 6) | popisně, bez testování |
+| Výstup | průměrný BACI, 95% CI, d_z, počet kladných | stejně | průběh Δ v čase (graf), svislá čára instalace a přechodu senzorů 2013 |
+
+### Vyřazení dat
+- měsíc vyřazen, pokud SR_valid_frac (NDVI, BSI) nebo ST_valid_frac (LST) < 0,5 u FVE nebo kontroly
+- LST: lokalita Břest vyřazena celá (mezera v produktu Landsat C2 L2 ST – ctrl 0 %, FVE 37 % platné plochy) → n = 6
+- NDVI a BSI jen z pixelů s fyzikálně platnou reflektancí (0–1 ve všech kanálech); vyřazena mj. scéna 2015-03 nad jižní Moravou (chybná atmosférická korekce)
+- rok 2012 pokryt pouze Landsatem 7 (SLC-off) – ponechán, s vyšším podílem chybějících pixelů
+
+### Známá omezení
+- přechod senzorů v roce 2013 (I+3 u lokalit z roku 2010): BACI ho vyrovnává jen za předpokladu, že se senzorový posun projevuje na FVE i kontrole stejně
+- ~30 % měsíců stojí na jediné scéně → agregace na roční průměr IV–VI
+- střídání plodin na kontrole zvyšuje variabilitu Δ; průměrování přes 3 (před) a 5 (po) let ji tlumí
+- n = 7 (LST n = 6) → nízká síla testu; interpretovat hlavně velikost efektu a 95% CI
