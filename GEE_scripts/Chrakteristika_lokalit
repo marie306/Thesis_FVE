@@ -1,0 +1,62 @@
+// ===== 1) Polygony – jen analyzované plochy =====
+var sites = ee.FeatureCollection('projects/diplomka-fv-2018/assets/lokality_fve_all')
+  .filter(ee.Filter.inList('type', ['FVE_buffer', 'ctrl']));
+print('Počet polygonů (má být 14):', sites.size());
+
+// ===== 2) DEM – Copernicus GLO-30 =====
+var demCol = ee.ImageCollection('COPERNICUS/DEM/GLO30').select('DEM');
+var proj = demCol.first().projection();
+var dem = demCol.mosaic().setDefaultProjection(proj).rename('elev');
+
+// ===== 3) Sklon a expozice =====
+var slope = ee.Terrain.slope(dem).rename('slope');      // stupně
+var aspect = ee.Terrain.aspect(dem);                    // stupně, 0 = sever
+var aspRad = aspect.multiply(Math.PI / 180);
+var sinA = aspRad.sin().rename('sinA');
+var cosA = aspRad.cos().rename('cosA');
+
+var stack = dem.addBands(slope).addBands(sinA).addBands(cosA);
+
+// ===== 4) Průměry za polygon =====
+var stats = stack.reduceRegions({
+  collection: sites,
+  reducer: ee.Reducer.mean(),
+  scale: 30,
+  tileScale: 4
+});
+
+// min a max nadmořské výšky
+var stats2 = dem.reduceRegions({
+  collection: stats,
+  reducer: ee.Reducer.minMax(),
+  scale: 30,
+  tileScale: 4
+});
+
+// ===== 5) Průměrná expozice (kruhový průměr) =====
+var result = stats2.map(function (f) {
+  var s = ee.Number(f.get('sinA'));
+  var c = ee.Number(f.get('cosA'));
+  var asp = s.atan2(c).multiply(180 / Math.PI).add(360).mod(360);
+  var R = s.hypot(c);   // 0–1: síla převládajícího směru
+  return f.set({
+    elev_mean: f.get('elev'),
+    elev_min: f.get('min'),
+    elev_max: f.get('max'),
+    slope_mean: f.get('slope'),
+    aspect_deg: asp,
+    aspect_R: R
+  });
+});
+
+print(result);
+
+// ===== 6) Export =====
+Export.table.toDrive({
+  collection: result,
+  description: 'FVE_terrain',
+  folder: 'Diplomka',
+  fileFormat: 'CSV',
+  selectors: ['site_id', 'type', 'elev_mean', 'elev_min', 'elev_max',
+              'slope_mean', 'aspect_deg', 'aspect_R']
+});
