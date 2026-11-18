@@ -82,7 +82,7 @@
 | Rok | Charakter | Senzor |
 |---|---|---|
 | 2017 | normální referenční rok | Sentinel-2, LST |
-| 2018 | extrémní sucho (521 mm) | Sentinel-2, LST |
+| 2018 | extrémní sucho (522 mm) | Sentinel-2, LST |
 | 2019 | post-drought | Sentinel-2, LST |
 | 2020 | mokrý referenční rok | Sentinel-2,LST |
 | 2026 | aktuální data (suché jaro, upřesnění na podzim) | Sentinel-2, LST |
